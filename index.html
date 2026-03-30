@@ -15,20 +15,12 @@
             --diff-red: #fff0f0; 
             --diff-border: #d93025; 
             --text-main: #3c4043;
-            --text-second: #70757a;
         }
         body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 1. 标题与副标题更新 */
         .app-header { margin-bottom: 22px; text-align: center; }
-        .app-header h1 { 
-            font-size: 28px; 
-            color: var(--primary); 
-            margin: 0; 
-            font-weight: 700; 
-            letter-spacing: 1px;
-        }
-        .app-header p { font-size: 14px; color: var(--text-second); margin-top: 6px; font-weight: 500; }
+        .app-header h1 { font-size: 28px; color: var(--primary); margin: 0; font-weight: 700; }
+        .app-header p { font-size: 14px; color: #70757a; margin-top: 6px; font-weight: 500; }
 
         .top-nav { 
             display: grid; grid-template-columns: 1fr 140px 1fr; gap: 15px; 
@@ -38,69 +30,49 @@
         
         .upload-section { display: flex; flex-direction: column; gap: 10px; }
         
-        /* 2. 上传框视觉大幅强化 */
+        /* 强化上传框 */
         .upload-zone { 
-            border: 2px dashed #dadce0; border-radius: 12px; height: 55px; 
+            border: 2px dashed #dadce0; border-radius: 12px; height: 60px; 
             display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; background: #fff; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            cursor: pointer; background: #fff; transition: all 0.2s ease;
         }
-        /* 悬停反馈 */
-        .upload-zone:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 10px rgba(26,115,232,0.1);
-        }
-        /* 拖拽反馈 */
+        .upload-zone:hover { border-color: var(--primary); background: #f8faff; }
         .upload-zone.drag-over { 
-            border-color: var(--primary); 
-            background: #f1f7fe; 
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 4px 15px rgba(26,115,232,0.2);
-            border-style: solid;
+            border-color: var(--primary); background: #f1f7fe; transform: scale(1.02); border-style: solid;
         }
         
-        /* 强化核心交互文字 */
+        /* 极其明显的文字 */
         .upload-zone span { 
-            font-size: 15px; 
-            color: var(--primary); /* 改为蓝色 */
-            font-weight: bold; /* 加粗 */
-            pointer-events: none; /* 防止干扰拖拽 */
+            font-size: 17px; color: var(--primary); font-weight: 900; letter-spacing: 1px;
         }
         
         .sheet-selector { 
-            display: none; padding: 7px; border: 1px solid #dfe1e5; 
-            border-radius: 6px; font-size: 12px; color: var(--primary); 
-            font-weight: 600; outline: none; background: #fff; cursor: pointer;
-            transition: 0.2s;
+            display: none; padding: 6px; border: 1px solid var(--primary); 
+            border-radius: 6px; font-size: 12px; color: var(--primary); font-weight: bold;
         }
-        .sheet-selector:hover { border-color: var(--primary); }
 
         .btn-go { 
             background: var(--primary); color: white; border: none; height: 46px; 
             border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;
-            box-shadow: 0 2px 5px rgba(26,115,232,0.3); transition: 0.2s;
         }
-        .btn-go:hover { background: #1557b0; box-shadow: 0 5px 12px rgba(26,115,232,0.4); transform: translateY(-1px); }
 
-        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
-        .pane { background: #fff; overflow: auto; position: relative; }
+        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 12px; overflow: hidden; }
+        .pane { background: #fff; overflow: auto; }
         
-        /* Excel 表格 */
+        /* Excel 表格样式 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
-        .excel-table thead th { position: sticky; top: 0; background: #f1f3f4; z-index: 10; border-bottom: 1px solid #ccc; padding: 10px; font-size: 12px; color: #5f6368; }
+        .excel-table thead th { position: sticky; top: 0; background: #f1f3f4; z-index: 10; border-bottom: 1px solid #ccc; padding: 10px; font-size: 12px; }
         .excel-table tbody th { position: sticky; left: 0; background: #f1f3f4; z-index: 9; width: 48px; text-align: center; border-right: 1px solid #ccc; color: #9aa0a6; }
         .excel-table td { border: 1px solid #ebebeb; padding: 8px; height: 32px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: 600; border: 1.5px solid var(--diff-border) !important; }
+        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: bold; border: 1.5px solid var(--diff-border) !important; }
 
-        /* PDF 页码样式增强 */
-        .text-mode { padding: 45px; line-height: 2.5; font-size: 15px; white-space: pre-wrap; color: var(--text-main); }
-        .page-divider {
-            display: flex; align-items: center; margin: 35px 0 18px 0; color: var(--primary); font-weight: bold; font-size: 12px;
-        }
+        /* 页码样式 */
+        .text-mode { padding: 40px; line-height: 2.5; font-size: 15px; white-space: pre-wrap; }
+        .page-divider { display: flex; align-items: center; margin: 30px 0 15px 0; color: var(--primary); font-weight: bold; }
         .page-divider::before, .page-divider::after { content: ""; flex: 1; height: 1px; background: #e8eaed; }
-        .page-badge { background: #e8f0fe; padding: 5px 14px; border-radius: 20px; border: 1px solid #c2e7ff; margin: 0 15px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .page-badge { background: #e8f0fe; padding: 4px 15px; border-radius: 20px; border: 1px solid #c2e7ff; margin: 0 15px; font-size: 12px; }
 
-        .txt-added { background: #e6ffec; color: #137333; border-bottom: 1px solid #34a853; }
+        .txt-added { background: #e6ffec; color: #137333; }
         .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
     </style>
 </head>
@@ -119,9 +91,7 @@
         </div>
         <select id="sheetA" class="sheet-selector"></select>
     </div>
-    
     <button class="btn-go" id="runBtn">开始核对</button>
-    
     <div class="upload-section">
         <div class="upload-zone" id="zoneB">
             <input type="file" id="fileB" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
@@ -137,7 +107,6 @@
 </div>
 
 <script>
-    // 核心解析逻辑保持不变
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     let dataA = { ext: '', wb: null, val: null }, dataB = { ext: '', wb: null, val: null };
 
@@ -145,20 +114,14 @@
         const zone = document.getElementById(zoneId);
         const input = document.getElementById(inputId);
         const sel = document.getElementById('sheet' + key);
-
         zone.onclick = () => input.click();
-        
-        // 增强的拖拽动效
         zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
         zone.ondragleave = () => zone.classList.remove('drag-over');
         zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleParse(e.dataTransfer.files[0], key); };
-        
         input.onchange = (e) => handleParse(e.target.files[0], key);
-
         sel.onchange = (e) => {
             const obj = key === 'A' ? dataA : dataB;
-            const ws = obj.wb.Sheets[e.target.value];
-            obj.val = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
+            obj.val = XLSX.utils.sheet_to_json(obj.wb.Sheets[e.target.value], {header: 1, defval: ""});
         };
     };
 
@@ -169,19 +132,13 @@
         const ext = file.name.split('.').pop().toLowerCase();
         const obj = (key === 'A') ? dataA : dataB;
         obj.ext = ext;
-        
         sel.style.display = 'none'; 
         sel.innerHTML = '';
-
         try {
             if (ext.includes('xls')) {
                 const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
                 obj.wb = wb;
-                wb.SheetNames.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name; opt.innerText = "工作表: " + name;
-                    sel.appendChild(opt);
-                });
+                wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="工作表: "+n; sel.appendChild(o); });
                 sel.style.display = 'block';
                 obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
             } else if (ext === 'pdf') {
@@ -190,7 +147,6 @@
                 for (let i=1; i<=pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    // 标记页码
                     t += `[[PAGE_${i}]]\n` + content.items.map(s => s.str).join(" ") + "\n";
                 }
                 obj.val = t;
@@ -200,7 +156,7 @@
             } else {
                 obj.val = await file.text();
             }
-            label.innerHTML = `<span style="color:var(--primary);font-weight:bold;font-size:12px">✅ ${file.name}</span>`;
+            label.innerHTML = `✅ ${file.name}`;
         } catch (e) { label.innerText = "❌ 解析失败"; }
     }
 
@@ -210,13 +166,11 @@
     document.getElementById('runBtn').onclick = () => {
         const v1 = document.getElementById('p1'), v2 = document.getElementById('p2');
         if (!dataA.val || !dataB.val) return;
-        
         if (dataA.ext.includes('xls') && dataB.ext.includes('xls')) {
             renderExcel(v1, v2);
         } else {
             renderText(v1, v2);
         }
-        
         v1.onscroll = () => { v2.scrollTop = v1.scrollTop; v2.scrollLeft = v1.scrollLeft; };
         v2.onscroll = () => { v1.scrollTop = v2.scrollTop; v1.scrollLeft = v2.scrollLeft; };
     };
@@ -237,7 +191,7 @@
                 }
                 h += '</tr>';
             }
-            return html + '</tbody></table>';
+            return h + '</tbody></table>'; // 修复点：确保返回 h
         };
         v1.innerHTML = build(dataA.val, dataB.val);
         v2.innerHTML = build(dataB.val, dataA.val);
@@ -247,11 +201,7 @@
         const diffs = Diff.diffLines(String(dataA.val), String(dataB.val));
         v1.innerHTML = '<div class="text-mode"></div>'; v2.innerHTML = '<div class="text-mode"></div>';
         const d1 = v1.firstChild, d2 = v2.firstChild;
-
-        const formatPage = (text) => {
-            return text.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
-        };
-
+        const formatPage = (text) => text.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
         diffs.forEach(p => {
             const val = formatPage(p.value);
             if (p.added) {
@@ -260,9 +210,7 @@
             } else if (p.removed) {
                 d1.innerHTML += `<span class="txt-removed">${val}</span>`;
                 d2.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
-            } else {
-                d1.innerHTML += val; d2.innerHTML += val;
-            }
+            } else { d1.innerHTML += val; d2.innerHTML += val; }
         });
     }
 </script>
