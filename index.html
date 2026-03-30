@@ -21,54 +21,50 @@
             background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); align-items: center; margin-bottom: 10px;
         }
         
-        .upload-section { display: flex; flex-direction: column; gap: 5px; }
+        .upload-section { display: flex; flex-direction: column; gap: 8px; }
         .upload-zone { border: 2px dashed #dadce0; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; transition: 0.2s; }
-        .upload-zone span { font-size: 15px; color: var(--primary); font-weight: 900; }
+        .upload-zone span { font-size: 16px; color: var(--primary); font-weight: 900; }
         .upload-zone.drag-over { border: 3px solid var(--primary); background: #e8f0fe; transform: scale(1.02); }
 
-        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        /* Sheet 选择器样式 */
+        .sheet-selector { display: none; padding: 6px; border: 1.5px solid var(--primary); border-radius: 4px; font-size: 12px; font-weight: bold; color: var(--primary); outline: none; background: #fff; }
 
-        /* 布局控制 */
+        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-go:active { transform: scale(0.95); }
+
         .content-container { display: flex; flex: 1; gap: 10px; overflow: hidden; position: relative; }
         .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 8px; overflow: hidden; }
         .pane { background: #fff; overflow: auto; scroll-behavior: smooth; }
 
-        /* 侧边栏样式重构 */
+        /* 侧边栏及悬浮球 */
         .diff-sidebar { 
             width: 280px; background: #fff; border-radius: 8px; display: flex; flex-direction: column; 
-            box-shadow: -2px 0 15px rgba(0,0,0,0.1); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-            position: relative; z-index: 100;
+            box-shadow: -2px 0 15px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 100;
         }
-        .diff-sidebar.hidden { transform: translateX(300px); position: absolute; right: 0; height: 100%; }
+        .diff-sidebar.hidden { transform: translateX(310px); position: absolute; right: 0; height: 100%; }
 
-        .sidebar-header { 
-            padding: 15px; background: #f1f3f4; border-radius: 8px 8px 0 0; 
-            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
-        }
+        .sidebar-header { padding: 15px; background: #f1f3f4; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; }
+        .close-btn { cursor: pointer; font-size: 22px; color: #5f6368; line-height: 1; }
         
-        /* 浮动展开按钮 */
         .fab-open {
-            position: absolute; right: 20px; bottom: 30px; width: 50px; height: 50px; 
+            position: absolute; right: 20px; bottom: 30px; width: 56px; height: 56px; 
             background: var(--primary); color: white; border-radius: 50%; 
             display: none; align-items: center; justify-content: center; 
-            box-shadow: 0 4px 12px rgba(26,115,232,0.4); cursor: pointer; z-index: 101;
-            font-size: 12px; text-align: center; line-height: 1.2; font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 90;
+            font-size: 12px; text-align: center; font-weight: bold;
         }
 
-        .close-btn { cursor: pointer; font-size: 20px; color: #5f6368; padding: 0 5px; }
-        .close-btn:hover { color: var(--diff-border); }
-
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .diff-item { padding: 10px; border-radius: 6px; border-left: 4px solid var(--diff-border); background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .diff-item:hover { transform: translateX(-3px); background: #ffdada; }
+        .diff-item { padding: 10px; border-radius: 6px; border-left: 4px solid var(--diff-border); background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .diff-item:hover { background: #ffdada; transform: translateX(-3px); }
 
-        /* 内容样式保持 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
         .excel-table td, .excel-table th { border: 1px solid #ebebeb; padding: 8px; font-size: 13px; }
         .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: bold; outline: 1.5px solid var(--diff-border); }
-        .text-mode { padding: 30px; line-height: 2.2; white-space: pre-wrap; font-size: 14px; }
-        .page-divider { display: flex; align-items: center; margin: 20px 0 10px 0; color: var(--primary); font-weight: bold; font-size: 12px; }
-        .page-badge { background: #e8f0fe; padding: 2px 10px; border-radius: 10px; margin: 0 10px; }
+        .text-mode { padding: 35px; line-height: 2.2; white-space: pre-wrap; font-size: 14px; }
+        .page-divider { display: flex; align-items: center; margin: 25px 0 10px 0; color: var(--primary); font-weight: bold; font-size: 12px; }
+        .page-badge { background: #e8f0fe; padding: 2px 12px; border-radius: 12px; margin: 0 10px; }
         .txt-added { background: #e6ffec; color: #137333; }
         .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
     </style>
@@ -84,11 +80,13 @@
     <div class="upload-section">
         <div class="upload-zone" id="zoneA"><span>📂 点击或拖入原件</span></div>
         <input type="file" id="fileA" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
+        <select id="sheetA" class="sheet-selector"></select>
     </div>
     <button class="btn-go" id="runBtn">执行核对</button>
     <div class="upload-section">
         <div class="upload-zone" id="zoneB"><span>📂 点击或拖入修订件</span></div>
         <input type="file" id="fileB" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
+        <select id="sheetB" class="sheet-selector"></select>
     </div>
 </div>
 
@@ -97,17 +95,15 @@
         <div class="pane" id="p1"></div>
         <div class="pane" id="p2"></div>
     </div>
-
     <div class="diff-sidebar" id="sidebar">
         <div class="sidebar-header">
             <span id="diffCount">差异清单 (0)</span>
             <span class="close-btn" onclick="toggleSidebar(true)">×</span>
         </div>
         <div class="sidebar-content" id="diffList">
-            <p style="color:#999; text-align:center; font-size:12px; margin-top:20px;">等待执行核对...</p>
+            <p style="color:#999; text-align:center; font-size:12px; margin-top:30px;">等待执行核对...</p>
         </div>
     </div>
-
     <div id="fab" class="fab-open" onclick="toggleSidebar(false)">查看<br>差异</div>
 </div>
 
@@ -115,39 +111,38 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     let dataA = { ext: '', wb: null, val: null }, dataB = { ext: '', wb: null, val: null };
 
-    // 侧边栏切换逻辑
     function toggleSidebar(hide) {
-        const sidebar = document.getElementById('sidebar');
-        const fab = document.getElementById('fab');
-        if(hide) {
-            sidebar.classList.add('hidden');
-            fab.style.display = 'flex';
-        } else {
-            sidebar.classList.remove('hidden');
-            fab.style.display = 'none';
-        }
+        document.getElementById('sidebar').classList.toggle('hidden', hide);
+        document.getElementById('fab').style.display = hide ? 'flex' : 'none';
     }
 
-    // 上传处理
     ['A', 'B'].forEach(key => {
-        const zone = document.getElementById('zone'+key);
-        const input = document.getElementById('file'+key);
+        const zone = document.getElementById('zone'+key), input = document.getElementById('file'+key), sel = document.getElementById('sheet'+key);
         zone.onclick = () => input.click();
         zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
         zone.ondragleave = () => zone.classList.remove('drag-over');
         zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleParse(e.dataTransfer.files[0], key); };
         input.onchange = (e) => handleParse(e.target.files[0], key);
+        sel.onchange = (e) => {
+            const obj = (key === 'A') ? dataA : dataB;
+            obj.val = XLSX.utils.sheet_to_json(obj.wb.Sheets[e.target.value], {header: 1, defval: ""});
+        };
     });
 
     async function handleParse(file, key) {
         if(!file) return;
         const obj = (key === 'A') ? dataA : dataB;
         const ext = file.name.split('.').pop().toLowerCase();
-        obj.ext = ext;
+        const sel = document.getElementById('sheet'+key);
+        obj.ext = ext; sel.style.display = 'none'; sel.innerHTML = '';
+
         try {
             if (ext.includes('xls')) {
                 const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
-                obj.wb = wb; obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
+                obj.wb = wb;
+                wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="工作表: "+n; sel.appendChild(o); });
+                sel.style.display = 'block';
+                obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
             } else if (ext === 'pdf') {
                 const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
                 let t = "";
@@ -165,12 +160,9 @@
     }
 
     document.getElementById('runBtn').onclick = () => {
-        const v1 = document.getElementById('p1'), v2 = document.getElementById('p2');
+        const v1 = document.getElementById('p1'), v2 = document.getElementById('p2'), list = document.getElementById('diffList');
         if (!dataA.val || !dataB.val) return;
-        
-        const list = document.getElementById('diffList');
-        list.innerHTML = "";
-        let diffItems = [];
+        list.innerHTML = ""; let diffItems = [];
 
         if (dataA.ext.includes('xls')) renderExcel(v1, v2, diffItems);
         else renderText(v1, v2, diffItems);
@@ -190,7 +182,6 @@
             };
             list.appendChild(div);
         });
-
         v1.onscroll = () => { v2.scrollTop = v1.scrollTop; v2.scrollLeft = v1.scrollLeft; };
         v2.onscroll = () => { v1.scrollTop = v2.scrollTop; v1.scrollLeft = v2.scrollLeft; };
     };
@@ -225,8 +216,7 @@
         const d1 = v1.firstChild, d2 = v2.firstChild;
         const formatPage = (t) => t.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
         diffs.forEach((p, idx) => {
-            const id = `diff_txt_${idx}`;
-            const val = formatPage(p.value);
+            const id = `diff_txt_${idx}`, val = formatPage(p.value);
             if (p.added) {
                 diffItems.push({id: id, txt: `新增内容: ${p.value.substring(0,10)}...`});
                 d2.innerHTML += `<span id="${id}" class="txt-added">${val}</span>`;
