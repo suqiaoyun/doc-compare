@@ -2,19 +2,16 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>文字智能核对助手</title>
+    <title>Excel 网页可视化核对助手</title>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
-
     <style>
-        :root { --primary: #1a73e8; --bg: #f8f9fa; --diff-add: #e6ffec; --diff-remove: #ffebe9; }
-        body { font-family: 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: var(--primary); font-size: 26px; margin: 0; }
+        :root { --primary: #1a73e8; --diff-bg: #fff0f0; --diff-text: #d93025; }
+        body { font-family: system-ui; background: #f8f9fa; margin: 0; padding: 20px; }
         
-        /* 上传框高度极致压缩 */
+        .header { text-align: center; margin-bottom: 15px; }
+        .header h1 { color: var(--primary); font-size: 24px; margin: 0; }
+
+        /* 上传区域高度压缩 */
         .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .drop-card { 
             background: #fff; border: 2px dashed #dadce0; border-radius: 8px; 
@@ -22,130 +19,116 @@
             cursor: pointer; transition: 0.2s;
         }
         .drop-card:hover { border-color: var(--primary); background: #f1f8ff; }
-        .drop-card h3 { font-size: 13px; margin: 0; color: #5f6368; }
-        .file-info { font-size: 11px; color: var(--primary); font-weight: bold; margin-top: 2px; }
+        .file-info { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 2px; }
 
         .btn-run { 
             width: 100%; height: 45px; background: var(--primary); color: white; border: none; 
-            border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px;
+            border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 15px;
         }
 
-        /* 预览框拉长至 750px */
-        .main-view { background: #fff; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #dadce0; overflow: hidden; }
-        .label { padding: 10px; background: #f1f3f4; font-size: 12px; font-weight: bold; border-bottom: 1px solid #dadce0; }
-        .viewer { height: 750px; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 2; white-space: pre-wrap; word-break: break-all; }
-        .viewer:first-of-type { border-right: 1px solid #dadce0; }
+        /* 渲染表格样式 */
+        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #ddd; background: #fff; border-radius: 8px; overflow: hidden; }
+        .pane { height: 700px; overflow: auto; position: relative; }
+        .pane:first-child { border-right: 2px solid var(--primary); }
+        
+        table { border-collapse: collapse; width: 100%; font-size: 13px; table-layout: fixed; }
+        th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 100px; height: 25px; }
+        th { background: #f1f3f4; position: sticky; top: 0; z-index: 10; }
 
-        .added { background: var(--diff-add); color: #137333; }
-        .removed { background: var(--diff-remove); color: #d93025; text-decoration: line-through; }
-        .tag { display: block; background: #e8f0fe; color: #1a73e8; padding: 4px; font-weight: bold; margin: 10px 0; border-left: 4px solid var(--primary); }
+        /* 差异标红样式 */
+        .cell-diff { background-color: var(--diff-bg) !important; color: var(--diff-text) !important; font-weight: bold; border: 1px solid var(--diff-text) !important; }
+        .label { position: sticky; top: 0; left: 0; background: var(--primary); color: white; padding: 4px 10px; font-size: 12px; z-index: 20; }
     </style>
 </head>
 <body>
 
-<div class="header"><h1>文字智能核对助手</h1></div>
+<div class="header">
+    <h1>Excel 原生样式核对助手</h1>
+</div>
 
-<div class="container" style="max-width: 1400px; margin: 0 auto;">
-    <div class="upload-row">
-        <div class="drop-card" onclick="document.getElementById('fileA').click()">
-            <input type="file" id="fileA" hidden accept=".pdf,.docx,.xlsx">
-            <h3>📁 点击上传原件</h3>
-            <div id="infoA" class="file-info">未选择</div>
-        </div>
-        <div class="drop-card" onclick="document.getElementById('fileB').click()">
-            <input type="file" id="fileB" hidden accept=".pdf,.docx,.xlsx">
-            <h3>📁 点击上传新版</h3>
-            <div id="infoB" class="file-info">未选择</div>
-        </div>
+<div class="upload-row">
+    <div class="drop-card" onclick="document.getElementById('fileA').click()">
+        <input type="file" id="fileA" hidden accept=".xlsx,.xls">
+        <h3>📄 点击上传原件 Excel</h3>
+        <div id="infoA" class="file-info">未选择</div>
     </div>
-
-    <button class="btn-run" id="btnRun">开始智能核对分析</button>
-
-    <div class="main-view">
-        <div class="label">【原件内容】</div><div class="label">【对比修订】</div>
-        <div id="v1" class="viewer"></div><div id="v2" class="viewer"></div>
+    <div class="drop-card" onclick="document.getElementById('fileB').click()">
+        <input type="file" id="fileB" hidden accept=".xlsx,.xls">
+        <h3>📄 点击上传新版 Excel</h3>
+        <div id="infoB" class="file-info">未选择</div>
     </div>
 </div>
 
+<button class="btn-run" id="btnRun">执行单元格级比对</button>
+
+<div class="main-view">
+    <div class="pane" id="paneA"><div class="label">原件视图</div><div id="outA"></div></div>
+    <div class="pane" id="paneB"><div class="label">修订视图</div><div id="outB"></div></div>
+</div>
+
 <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-    let fileContents = { A: "", B: "" };
+    let sheets = { A: [], B: [] };
 
-    // 文件处理函数
-    async function processFile(file, key) {
+    async function handleExcel(file, key) {
         if (!file) return;
-        document.getElementById('info' + key).innerText = "加载中: " + file.name;
-        const ext = file.name.split('.').pop().toLowerCase();
-        let text = "";
-
-        try {
-            if (ext === 'xlsx' || ext === 'xls') {
-                const ab = await file.arrayBuffer();
-                // 深度修复点：强制指定二进制 array 读取，并转为 JSON 格式避免乱码
-                const wb = XLSX.read(new Uint8Array(ab), { type: 'array' });
-                wb.SheetNames.forEach(sheetName => {
-                    const ws = wb.Sheets[sheetName];
-                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                    text += `\n[表格: ${sheetName}]\n`;
-                    rows.forEach(row => {
-                        text += row.map(cell => (cell === null || cell === undefined) ? "" : cell).join(" | ") + "\n";
-                    });
-                });
-            } else if (ext === 'pdf') {
-                const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += `\n[第 ${i} 页]\n` + content.items.map(s => s.str).join(" ") + "\n";
-                }
-            } else if (ext === 'docx') {
-                const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-                text = res.value;
-            }
-            fileContents[key] = text;
-            document.getElementById('info' + key).innerText = "已就绪: " + file.name;
-        } catch (e) {
-            alert("文件读取失败，请检查文件是否加密或损坏。");
-        }
+        document.getElementById('info' + key).innerText = "正在解析: " + file.name;
+        const ab = await file.arrayBuffer();
+        const wb = XLSX.read(new Uint8Array(ab), { type: 'array' });
+        // 只取第一个工作表进行比对
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        // 转化为二维数组以便坐标比对 {header: 1}
+        sheets[key] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+        document.getElementById('info' + key).innerText = "已就绪: " + file.name;
     }
 
-    document.getElementById('fileA').onchange = (e) => processFile(e.target.files[0], 'A');
-    document.getElementById('fileB').onchange = (e) => processFile(e.target.files[0], 'B');
+    document.getElementById('fileA').onchange = (e) => handleExcel(e.target.files[0], 'A');
+    document.getElementById('fileB').onchange = (e) => handleExcel(e.target.files[0], 'B');
 
     document.getElementById('btnRun').onclick = () => {
-        if (!fileContents.A || !fileContents.B) return alert("请先上传两份文件");
-        
-        const v1 = document.getElementById('v1');
-        const v2 = document.getElementById('v2');
-        v1.innerHTML = ''; v2.innerHTML = '';
+        if (sheets.A.length === 0 || sheets.B.length === 0) return alert("请先上传两个 Excel 文件");
 
-        const diffs = Diff.diffLines(fileContents.A, fileContents.B);
+        const maxRows = Math.max(sheets.A.length, sheets.B.length);
+        const maxCols = Math.max(
+            sheets.A.reduce((max, row) => Math.max(max, row.length), 0),
+            sheets.B.reduce((max, row) => Math.max(max, row.length), 0)
+        );
 
-        diffs.forEach(part => {
-            const cleanText = part.value.replace(/\[(第 \d+ 页|表格: .*?)\]/g, '<span class="tag">$1</span>');
-            const lines = (part.value.match(/\n/g) || []).length;
+        renderTable('outA', sheets.A, sheets.B, maxRows, maxCols);
+        renderTable('outB', sheets.B, sheets.A, maxRows, maxCols);
 
-            if (part.added) {
-                v2.appendChild(createSpan(cleanText, 'added'));
-                v1.appendChild(createSpan('\n'.repeat(lines + 1), ''));
-            } else if (part.removed) {
-                v1.appendChild(createSpan(cleanText, 'removed'));
-                v2.appendChild(createSpan('\n'.repeat(lines + 1), ''));
-            } else {
-                v1.appendChild(createSpan(cleanText, ''));
-                v2.appendChild(createSpan(cleanText, ''));
-            }
-        });
-
-        v1.onscroll = () => v2.scrollTop = v1.scrollTop;
-        v2.onscroll = () => v1.scrollTop = v2.scrollTop;
+        // 同步滚动逻辑
+        const pA = document.getElementById('paneA');
+        const pB = document.getElementById('paneB');
+        pA.onscroll = () => { pB.scrollTop = pA.scrollTop; pB.scrollLeft = pA.scrollLeft; };
+        pB.onscroll = () => { pA.scrollTop = pB.scrollTop; pA.scrollLeft = pB.scrollLeft; };
     };
 
-    function createSpan(html, cls) {
-        const s = document.createElement('span');
-        if (cls) s.className = cls;
-        s.innerHTML = html;
-        return s;
+    function renderTable(targetId, currentData, compareData, rows, cols) {
+        let html = '<table>';
+        // 生成表头
+        html += '<tr><th>#</th>';
+        for (let j = 0; j < cols; j++) {
+            html += `<th>${String.fromCharCode(65 + j)}</th>`;
+        }
+        html += '</tr>';
+
+        // 生成内容
+        for (let i = 0; i < rows; i++) {
+            html += `<tr><th>${i + 1}</th>`;
+            for (let j = 0; j < cols; j++) {
+                const val = (currentData[i] && currentData[i][j] !== undefined) ? currentData[i][j] : "";
+                const otherVal = (compareData[i] && compareData[i][j] !== undefined) ? compareData[i][j] : "";
+                
+                // 核心比对：如果值不同，标记 class
+                const isDiff = String(val).trim() !== String(otherVal).trim();
+                const diffClass = isDiff ? 'class="cell-diff"' : '';
+                
+                html += `<td ${diffClass} title="对比值: ${otherVal}">${val}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+        document.getElementById(targetId).innerHTML = html;
     }
 </script>
 </body>
