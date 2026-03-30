@@ -2,81 +2,97 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>DocCompare Pro - 全格式核对</title>
+    <title>文档对比助手 Pro</title>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
 
     <style>
-        :root { --primary: #1a73e8; --surface: #ffffff; --bg: #f1f3f4; --diff-red: #fde8e8; --diff-text: #d93025; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 12px; height: 100vh; display: flex; flex-direction: column; }
+        :root { --primary: #1a73e8; --bg: #f1f3f4; --diff-red: #fde8e8; --diff-text: #d93025; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 1. 紧凑型顶部栏：按钮并入行 */
+        /* 标题栏 */
+        .app-header { margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+        .app-header h1 { font-size: 20px; color: var(--primary); margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        /* 顶部操作行 */
         .top-nav { 
-            display: grid; grid-template-columns: 1fr 100px 1fr; gap: 12px; 
-            background: #fff; padding: 10px 15px; border-radius: 12px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); align-items: center; margin-bottom: 12px;
+            display: grid; grid-template-columns: 1fr 100px 1fr; gap: 15px; 
+            background: #fff; padding: 12px; border-radius: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); align-items: center; margin-bottom: 15px;
         }
+        
+        /* 动态拖拽框 */
         .upload-zone { 
-            border: 2px dashed #dadce0; border-radius: 8px; height: 45px; 
+            border: 2px dashed #dadce0; border-radius: 10px; height: 50px; 
             display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+            cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: relative; background: #fff;
         }
-        .upload-zone:hover { border-color: var(--primary); background: #f8faff; }
-        .upload-zone span { font-size: 13px; color: #5f6368; font-weight: 500; }
-        .file-name { font-size: 11px; color: var(--primary); position: absolute; bottom: 2px; }
+        /* 拖拽至上方时的动静 */
+        .upload-zone.drag-over { 
+            border-color: var(--primary); 
+            background: #e8f0fe; 
+            transform: scale(1.02); 
+            box-shadow: 0 0 15px rgba(26,115,232,0.2);
+            border-style: solid;
+        }
+        .upload-zone span { font-size: 13px; color: #5f6368; pointer-events: none; }
+        .file-ready { color: var(--primary) !important; font-weight: bold; }
 
         .btn-go { 
-            background: var(--primary); color: white; border: none; height: 45px; 
+            background: var(--primary); color: white; border: none; height: 44px; 
             border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;
-            box-shadow: 0 2px 4px rgba(26,115,232,0.3);
+            transition: 0.2s;
         }
-        .btn-go:hover { background: #1557b0; }
+        .btn-go:hover { background: #1557b0; box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
 
-        /* 2. 比对主视图 */
+        /* 对比区域 */
         .main-view { 
             display: grid; grid-template-columns: 1fr 1fr; gap: 1px; flex: 1;
-            background: #dadce0; border: 1px solid #dadce0; border-radius: 8px; overflow: hidden;
+            background: #dadce0; border: 1px solid #dadce0; border-radius: 12px; overflow: hidden;
         }
         .pane { background: #fff; overflow: auto; position: relative; }
         
-        /* 3. Excel 表格专项优化 */
+        /* Excel 置顶与冻结样式 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
-        .excel-table th, .excel-table td { 
-            border: 1px solid #e0e0e0; padding: 0 8px; height: 32px; 
-            font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        /* 冻结表头 */
         .excel-table thead th { 
             position: sticky; top: 0; background: #f8f9fa; z-index: 10; 
-            color: #70757a; font-weight: normal; border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid #ddd; padding: 8px; font-size: 12px; color: #70757a;
         }
-        /* 冻结行号 */
-        .excel-table th:first-child { 
-            position: sticky; left: 0; background: #f8f9fa; z-index: 11; width: 40px; text-align: center;
+        .excel-table tbody th { 
+            position: sticky; left: 0; background: #f8f9fa; z-index: 9; 
+            width: 45px; text-align: center; border-right: 2px solid #ddd;
         }
-        /* 标红样式 */
-        .diff-cell { background: var(--diff-red) !important; border: 1px solid var(--diff-text) !important; color: var(--diff-text); font-weight: bold; }
+        .excel-table td { 
+            border: 1px solid #e0e0e0; padding: 8px; height: 30px; 
+            font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .diff-cell { background: var(--diff-red) !important; color: var(--diff-text) !important; font-weight: bold; border: 1.5px solid var(--diff-text) !important; }
 
-        /* 文本模式样式 */
-        .text-mode { padding: 30px; line-height: 2; font-size: 14px; white-space: pre-wrap; }
-        .txt-added { background: #e6ffec; color: #137333; }
-        .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
-        .page-tag { display: block; border-left: 4px solid var(--primary); padding-left: 10px; margin: 15px 0; font-weight: bold; color: var(--primary); }
+        /* 文本模式 */
+        .text-mode { padding: 30px; line-height: 2.2; font-size: 14px; white-space: pre-wrap; }
+        .txt-added { background: #e6ffec; color: #137333; padding: 2px 0; }
+        .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; padding: 2px 0; }
+        .page-tag { display: block; border-left: 4px solid var(--primary); padding-left: 12px; margin: 20px 0; font-weight: bold; color: var(--primary); background: #f8faff; }
     </style>
 </head>
 <body>
 
+<div class="app-header">
+    <h1>📄 文档对比助手</h1>
+</div>
+
 <div class="top-nav">
     <div class="upload-zone" id="zoneA">
         <input type="file" id="fileA" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
-        <span id="labelA">📁 拖入原件</span>
+        <span id="labelA">📂 拖入或选择原件</span>
     </div>
     <button class="btn-go" id="runBtn">开始核对</button>
     <div class="upload-zone" id="zoneB">
         <input type="file" id="fileB" hidden accept=".pdf,.docx,.xlsx,.xls,.txt">
-        <span id="labelB">📁 拖入修订件</span>
+        <span id="labelB">📂 拖入或选择修订件</span>
     </div>
 </div>
 
@@ -87,54 +103,72 @@
 
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-    let dataA = { ext: '', val: null };
-    let dataB = { ext: '', val: null };
+    let dataA = { ext: '', val: null }, dataB = { ext: '', val: null };
 
-    // 初始化上传
-    const setup = (zoneId, inputId, key) => {
+    // 初始化上传及动效
+    const initUpload = (zoneId, inputId, key) => {
         const zone = document.getElementById(zoneId);
         const input = document.getElementById(inputId);
-        const label = document.getElementById('label' + key);
+        
         zone.onclick = () => input.click();
-        zone.ondragover = (e) => e.preventDefault();
-        zone.ondrop = (e) => { e.preventDefault(); parse(e.dataTransfer.files[0], key); };
-        input.onchange = (e) => parse(e.target.files[0], key);
+
+        // 拖拽动效逻辑
+        zone.ondragover = (e) => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        };
+        zone.ondragleave = () => {
+            zone.classList.remove('drag-over');
+        };
+        zone.ondrop = (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            handleParse(e.dataTransfer.files[0], key);
+        };
+        input.onchange = (e) => handleParse(e.target.files[0], key);
     };
 
-    async function parse(file, key) {
+    async function handleParse(file, key) {
         if(!file) return;
+        const label = document.getElementById('label' + key);
+        label.innerText = "读取中...";
+        
         const ext = file.name.split('.').pop().toLowerCase();
-        const obj = key === 'A' ? dataA : dataB;
+        const obj = (key === 'A') ? dataA : dataB;
         obj.ext = ext;
-        document.getElementById('label' + key).innerText = "✅ " + file.name;
 
-        if (ext.includes('xls')) {
-            const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
-            obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
-        } else if (ext === 'pdf') {
-            const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
-            let t = "";
-            for (let i=1; i<=pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                t += `[PAGE ${i}]\n` + content.items.map(s => s.str).join(" ") + "\n";
+        try {
+            if (ext.includes('xls')) {
+                const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
+                obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
+            } else if (ext === 'pdf') {
+                const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+                let t = "";
+                for (let i=1; i<=pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    t += `[第 ${i} 页]\n` + content.items.map(s => s.str).join(" ") + "\n";
+                }
+                obj.val = t;
+            } else if (ext === 'docx') {
+                const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+                obj.val = res.value;
+            } else {
+                obj.val = await file.text();
             }
-            obj.val = t;
-        } else if (ext === 'docx') {
-            const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-            obj.val = res.value;
-        } else {
-            obj.val = await file.text();
+            label.innerHTML = `<span class="file-ready">✅ ${file.name}</span>`;
+        } catch (e) {
+            label.innerText = "❌ 解析失败";
         }
     }
 
-    setup('zoneA', 'fileA', 'A');
-    setup('zoneB', 'fileB', 'B');
+    initUpload('zoneA', 'fileA', 'A');
+    initUpload('zoneB', 'fileB', 'B');
 
-    // 核对逻辑
+    // 核对执行
     document.getElementById('runBtn').onclick = () => {
-        const v1 = document.getElementById('p1');
-        const v2 = document.getElementById('p2');
+        const v1 = document.getElementById('p1'), v2 = document.getElementById('p2');
+        if (!dataA.val || !dataB.val) return alert("请先上传两份文件");
 
         if (dataA.ext.includes('xls') && dataB.ext.includes('xls')) {
             renderExcel(v1, v2);
@@ -142,7 +176,7 @@
             renderText(v1, v2);
         }
 
-        // 同步滚动
+        // 联动滚动
         v1.onscroll = () => { v2.scrollTop = v1.scrollTop; v2.scrollLeft = v1.scrollLeft; };
         v2.onscroll = () => { v1.scrollTop = v2.scrollTop; v1.scrollLeft = v2.scrollLeft; };
     };
@@ -151,24 +185,24 @@
         const rows = Math.max(dataA.val.length, dataB.val.length);
         const cols = Math.max(dataA.val[0]?.length || 0, dataB.val[0]?.length || 0);
         
-        const build = (curr, other) => {
-            let html = '<table class="excel-table"><thead><tr><th>#</th>';
-            for(let j=0; j<cols; j++) html += `<th style="width:150px">${String.fromCharCode(65+j)}</th>`;
-            html += '</tr></thead><tbody>';
+        const buildTable = (curr, other) => {
+            let h = '<table class="excel-table"><thead><tr><th>#</th>';
+            for(let j=0; j<cols; j++) h += `<th style="width:160px">${String.fromCharCode(65+j)}</th>`;
+            h += '</tr></thead><tbody>';
             for(let i=0; i<rows; i++) {
-                html += `<tr><th>${i+1}</th>`;
+                h += `<tr><th>${i+1}</th>`;
                 for(let j=0; j<cols; j++) {
-                    const c = curr[i]?.[j] || "";
-                    const o = other[i]?.[j] || "";
-                    const diff = String(c).trim() !== String(o).trim();
-                    html += `<td class="${diff?'diff-cell':''}" title="对照值: ${o}">${c}</td>`;
+                    const val = curr[i]?.[j] || "";
+                    const comp = other[i]?.[j] || "";
+                    const isDiff = String(val).trim() !== String(comp).trim();
+                    h += `<td class="${isDiff?'diff-cell':''}" title="比对值: ${comp}">${val}</td>`;
                 }
-                html += '</tr>';
+                h += '</tr>';
             }
-            return html + '</tbody></table>';
+            return h + '</tbody></table>';
         };
-        v1.innerHTML = build(dataA.val, dataB.val);
-        v2.innerHTML = build(dataB.val, dataA.val);
+        v1.innerHTML = buildTable(dataA.val, dataB.val);
+        v2.innerHTML = buildTable(dataB.val, dataA.val);
     }
 
     function renderText(v1, v2) {
@@ -177,35 +211,30 @@
         const d1 = v1.firstChild, d2 = v2.firstChild;
 
         diffs.forEach(p => {
-            const fmt = (t) => t.replace(/\[PAGE (\d+)\]/g, '<span class="page-tag">第 $1 页</span>');
+            const fmt = (t) => t.replace(/\[第 (\d+) 页\]/g, '<span class="page-tag">PAGE $1</span>');
             if (p.added) {
                 d2.innerHTML += `<span class="txt-added">${fmt(p.value)}</span>`;
-                d1.innerHTML += `<span style="color:transparent">${p.value}</span>`;
+                d1.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else if (p.removed) {
                 d1.innerHTML += `<span class="txt-removed">${fmt(p.value)}</span>`;
-                d2.innerHTML += `<span style="color:transparent">${p.value}</span>`;
+                d2.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else {
-                d1.innerHTML += fmt(p.value); d2.innerHTML += fmt(p.value);
+                const f = fmt(p.value); d1.innerHTML += f; d2.innerHTML += f;
             }
         });
     }
 
-    bindResize(); // 启用列宽双击自适应
-
-    function bindResize() {
-        document.addEventListener('dblclick', e => {
-            if(e.target.tagName === 'TH' && e.target.parentElement.parentElement.tagName === 'THEAD') {
-                const colIdx = e.target.cellIndex;
-                const table = e.target.closest('table');
-                table.style.tableLayout = 'auto'; // 临时改为自动以获取宽度
-                const newWidth = e.target.offsetWidth;
-                table.querySelectorAll(`tr td:nth-child(${colIdx+1}), tr th:nth-child(${colIdx+1})`).forEach(cell => {
-                    cell.style.width = newWidth + 'px';
-                });
-                table.style.tableLayout = 'fixed';
-            }
-        });
-    }
+    // 双击表头自适应宽度逻辑
+    document.addEventListener('dblclick', e => {
+        if(e.target.tagName === 'TH' && e.target.closest('thead')) {
+            const idx = e.target.cellIndex;
+            const table = e.target.closest('table');
+            table.style.tableLayout = 'auto';
+            const w = e.target.offsetWidth;
+            table.querySelectorAll(`tr th:nth-child(${idx+1}), tr td:nth-child(${idx+1})`).forEach(c => c.style.width = w + 'px');
+            table.style.tableLayout = 'fixed';
+        }
+    });
 </script>
 </body>
 </html>
