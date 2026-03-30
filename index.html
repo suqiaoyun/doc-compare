@@ -12,10 +12,9 @@
         :root { --primary: #1a73e8; --bg: #f8f9fa; --diff-red: #fff0f0; --diff-border: #d93025; }
         body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 10px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; }
         
-        /* 1. 压缩头部空白 */
-        .app-header { margin-bottom: 10px; text-align: center; }
+        .app-header { margin-bottom: 8px; text-align: center; }
         .app-header h1 { font-size: 24px; color: var(--primary); margin: 0; font-weight: 700; }
-        .app-header p { font-size: 13px; color: #70757a; margin: 2px 0; font-weight: 500; }
+        .app-header p { font-size: 13px; color: #70757a; margin: 2px 0; }
 
         .top-nav { 
             display: grid; grid-template-columns: 1fr 120px 1fr; gap: 10px; 
@@ -24,38 +23,40 @@
         }
         
         .upload-section { display: flex; flex-direction: column; gap: 5px; }
-        .upload-zone { border: 2px dashed #dadce0; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; }
-        .upload-zone span { font-size: 15px; color: var(--primary); font-weight: 900; }
-        .sheet-selector { display: none; padding: 4px; border: 1px solid var(--primary); border-radius: 4px; font-size: 12px; font-weight: bold; }
-
-        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-        /* 布局容器 */
-        .content-container { display: flex; flex: 1; gap: 10px; overflow: hidden; }
         
+        /* 1. 增强拖拽未松手时的视觉效果 */
+        .upload-zone { 
+            border: 2px dashed #dadce0; border-radius: 8px; height: 50px; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; background: #fff; transition: all 0.2s ease;
+        }
+        .upload-zone span { font-size: 15px; color: var(--primary); font-weight: 900; pointer-events: none; }
+        
+        /* 悬停状态：未松手时极其明显 */
+        .upload-zone.drag-over { 
+            border: 3px solid var(--primary) !important; 
+            background: #e8f0fe !important; 
+            transform: scale(1.02); 
+            box-shadow: 0 0 15px rgba(26,115,232,0.3);
+        }
+
+        .sheet-selector { display: none; padding: 4px; border: 1px solid var(--primary); border-radius: 4px; font-size: 12px; font-weight: bold; outline: none; }
+
+        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-go:active { transform: scale(0.95); opacity: 0.8; }
+
+        .content-container { display: flex; flex: 1; gap: 10px; overflow: hidden; }
         .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 8px; overflow: hidden; }
         .pane { background: #fff; overflow: auto; scroll-behavior: smooth; }
         
-        /* 2. 差异清单侧边栏 */
-        .diff-sidebar { 
-            width: 260px; background: #fff; border-radius: 8px; display: flex; flex-direction: column; 
-            box-shadow: -2px 0 10px rgba(0,0,0,0.05); transition: width 0.3s; position: relative;
-        }
-        .diff-sidebar.hidden { width: 40px; }
-        .sidebar-header { 
-            padding: 12px; background: #f1f3f4; border-radius: 8px 8px 0 0; 
-            display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px;
-        }
+        .diff-sidebar { width: 280px; background: #fff; border-radius: 8px; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); transition: 0.3s; }
+        .diff-sidebar.hidden { width: 40px; overflow: hidden; }
+        .sidebar-header { padding: 12px; background: #f1f3f4; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; white-space: nowrap; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .diff-item { 
-            padding: 8px; border-radius: 4px; border-left: 4px solid var(--diff-border); 
-            background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer;
-            transition: 0.2s;
-        }
-        .diff-item:hover { filter: brightness(0.95); }
-        .toggle-btn { cursor: pointer; padding: 5px; background: var(--primary); color: #fff; border-radius: 4px; font-size: 10px; text-align: center; }
+        .diff-item { padding: 8px; border-radius: 4px; border-left: 4px solid var(--diff-border); background: var(--diff-red); margin-bottom: 8px; font-size: 12px; cursor: pointer; }
+        .diff-item:hover { background: #ffdada; }
+        .toggle-btn { cursor: pointer; padding: 4px 8px; background: var(--primary); color: #fff; border-radius: 4px; font-size: 11px; }
 
-        /* 内容样式 */
         .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
         .excel-table td, .excel-table th { border: 1px solid #ebebeb; padding: 8px; height: 32px; font-size: 13px; }
         .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: bold; outline: 1.5px solid var(--diff-border); }
@@ -93,15 +94,12 @@
         <div class="pane" id="p1"></div>
         <div class="pane" id="p2"></div>
     </div>
-
     <div class="diff-sidebar" id="sidebar">
         <div class="sidebar-header">
             <span id="diffCount">差异清单 (0)</span>
-            <div class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('hidden')">收起/展开</div>
+            <div class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('hidden')">侧边栏</div>
         </div>
-        <div class="sidebar-content" id="diffList">
-            <p style="color:#999; font-size:12px; text-align:center;">核对后自动显示差异</p>
-        </div>
+        <div class="sidebar-content" id="diffList"><p style="color:#999; font-size:12px; text-align:center;">等待核对数据...</p></div>
     </div>
 </div>
 
@@ -109,14 +107,23 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     let dataA = { ext: '', wb: null, val: null }, dataB = { ext: '', wb: null, val: null };
 
-    // 初始化上传
+    // 2. 增强拖拽交互与多次核对逻辑
     ['A', 'B'].forEach(key => {
         const zone = document.getElementById('zone'+key);
         const input = document.getElementById('file'+key);
+        const sel = document.getElementById('sheet'+key);
+
         zone.onclick = () => input.click();
+        zone.ondragenter = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
+        zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('drag-over'); };
+        zone.ondragleave = () => zone.classList.remove('drag-over');
+        zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleParse(e.dataTransfer.files[0], key); };
+        
         input.onchange = (e) => handleParse(e.target.files[0], key);
-        zone.ondragover = (e) => e.preventDefault();
-        zone.ondrop = (e) => { e.preventDefault(); handleParse(e.dataTransfer.files[0], key); };
+        sel.onchange = (e) => {
+            const obj = key === 'A' ? dataA : dataB;
+            obj.val = XLSX.utils.sheet_to_json(obj.wb.Sheets[e.target.value], {header: 1, defval: ""});
+        };
     });
 
     async function handleParse(file, key) {
@@ -127,31 +134,34 @@
         const sel = document.getElementById('sheet'+key);
         sel.style.display = 'none'; sel.innerHTML = '';
 
-        if (ext.includes('xls')) {
-            const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
-            obj.wb = wb;
-            wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="工作表: "+n; sel.appendChild(o); });
-            sel.style.display = 'block';
-            obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
-        } else if (ext === 'pdf') {
-            const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
-            let t = "";
-            for (let i=1; i<=pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                t += `[[PAGE_${i}]]\n` + content.items.map(s => s.str).join(" ") + "\n";
-            }
-            obj.val = t;
-        } else if (ext === 'docx') {
-            obj.val = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
-        } else { obj.val = await file.text(); }
-        document.getElementById('zone'+key).querySelector('span').innerText = "✅ " + file.name;
+        try {
+            if (ext.includes('xls')) {
+                const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
+                obj.wb = wb;
+                wb.SheetNames.forEach(n => { const o = document.createElement('option'); o.value=n; o.innerText="工作表: "+n; sel.appendChild(o); });
+                sel.style.display = 'block';
+                obj.val = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ""});
+            } else if (ext === 'pdf') {
+                const pdf = await pdfjsLib.getDocument(await file.arrayBuffer()).promise;
+                let t = "";
+                for (let i=1; i<=pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    t += `[[PAGE_${i}]]\n` + content.items.map(s => s.str).join(" ") + "\n";
+                }
+                obj.val = t;
+            } else if (ext === 'docx') {
+                obj.val = (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value;
+            } else { obj.val = await file.text(); }
+            document.getElementById('zone'+key).querySelector('span').innerText = "✅ " + file.name;
+        } catch(e) { alert("解析失败，请检查文件格式"); }
     }
 
     document.getElementById('runBtn').onclick = () => {
         const v1 = document.getElementById('p1'), v2 = document.getElementById('p2');
-        if (!dataA.val || !dataB.val) return;
+        if (!dataA.val || !dataB.val) { alert("请先上传两份文件！"); return; }
         
+        // 核心修复：每次运行前清空列表
         const list = document.getElementById('diffList');
         list.innerHTML = "";
         let diffItems = [];
@@ -162,17 +172,21 @@
             renderText(v1, v2, diffItems);
         }
 
-        // 更新差异侧边栏
         document.getElementById('diffCount').innerText = `差异清单 (${diffItems.length})`;
+        if(diffItems.length === 0) list.innerHTML = '<p style="color:green; text-align:center; font-size:12px;">恭喜，未发现差异！</p>';
+
         diffItems.forEach((item, idx) => {
             const div = document.createElement('div');
             div.className = 'diff-item';
             div.innerHTML = `<strong>#${idx+1}</strong>: ${item.txt}`;
             div.onclick = () => {
                 const target = document.getElementById(item.id);
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                target.style.outline = "3px solid #ff0";
-                setTimeout(() => target.style.outline = "", 2000);
+                if(target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    target.style.transition = "outline 0.3s";
+                    target.style.outline = "4px solid orange";
+                    setTimeout(() => target.style.outline = "", 1500);
+                }
             };
             list.appendChild(div);
         });
@@ -191,10 +205,11 @@
             for(let i=0; i<rows; i++) {
                 h += `<tr><th>${i+1}</th>`;
                 for(let j=0; j<cols; j++) {
-                    const val = curr[i]?.[j] || "", comp = other[i]?.[j] || "";
+                    const val = curr[i]?.[j] !== undefined ? curr[i][j] : "";
+                    const comp = other[i]?.[j] !== undefined ? other[i][j] : "";
                     const isDiff = String(val).trim() !== String(comp).trim();
                     const id = `cell_${isMain?'A':'B'}_${i}_${j}`;
-                    if(isDiff && isMain) diffItems.push({id: id, txt: `行${i+1}列${String.fromCharCode(65+j)}: "${val}" vs "${comp}"`});
+                    if(isDiff && isMain) diffItems.push({id: id, txt: `行${i+1}列${String.fromCharCode(65+j)}: 内容不一致`});
                     h += `<td id="${id}" class="${isDiff?'diff-cell':''}">${val}</td>`;
                 }
                 h += '</tr>';
@@ -207,23 +222,22 @@
 
     function renderText(v1, v2, diffItems) {
         const diffs = Diff.diffLines(String(dataA.val), String(dataB.val));
-        v1.innerHTML = '<div class="text-mode" id="txt1"></div>'; v2.innerHTML = '<div class="text-mode" id="txt2"></div>';
+        v1.innerHTML = '<div class="text-mode"></div>'; v2.innerHTML = '<div class="text-mode"></div>';
         const d1 = v1.firstChild, d2 = v2.firstChild;
         const formatPage = (t) => t.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
 
         diffs.forEach((p, idx) => {
             const id = `diff_txt_${idx}`;
+            const val = formatPage(p.value);
             if (p.added) {
-                diffItems.push({id: id, txt: `新增内容: ${p.value.substring(0,20)}...`});
-                d2.innerHTML += `<span id="${id}" class="txt-added">${formatPage(p.value)}</span>`;
+                diffItems.push({id: id, txt: `新增内容: ${p.value.substring(0,15)}...`});
+                d2.innerHTML += `<span id="${id}" class="txt-added">${val}</span>`;
                 d1.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else if (p.removed) {
-                diffItems.push({id: id, txt: `删除内容: ${p.value.substring(0,20)}...`});
-                d1.innerHTML += `<span id="${id}" class="txt-removed">${formatPage(p.value)}</span>`;
+                diffItems.push({id: id, txt: `删除内容: ${p.value.substring(0,15)}...`});
+                d1.innerHTML += `<span id="${id}" class="txt-removed">${val}</span>`;
                 d2.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
-            } else {
-                const f = formatPage(p.value); d1.innerHTML += f; d2.innerHTML += f;
-            }
+            } else { d1.innerHTML += val; d2.innerHTML += val; }
         });
     }
 </script>
