@@ -2,56 +2,90 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>文档对比助手</title>
+    <title>文档对比助手 - MatchDiff</title>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
 
     <style>
-        :root { --primary: #1a73e8; --bg: #f1f3f4; --diff-red: #fff0f0; --diff-border: #d93025; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
+        :root { 
+            --primary: #1a73e8; 
+            --bg: #f8f9fa; 
+            --diff-red: #fff0f0; 
+            --diff-border: #d93025; 
+            --text-main: #3c4043;
+        }
+        body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: var(--bg); margin: 0; padding: 15px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        .app-header { margin-bottom: 15px; text-align: center; }
-        .app-header h1 { font-size: 20px; color: #3c4043; margin: 0; }
+        /* 1. 标题美化 */
+        .app-header { margin-bottom: 20px; text-align: center; }
+        .app-header h1 { 
+            font-size: 26px; 
+            color: var(--primary); 
+            margin: 0; 
+            font-weight: 700; 
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .app-header p { font-size: 13px; color: #70757a; margin-top: 5px; }
 
         .top-nav { 
-            display: grid; grid-template-columns: 1fr 120px 1fr; gap: 15px; 
-            background: #fff; padding: 10px; border-radius: 8px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); align-items: center; margin-bottom: 12px;
+            display: grid; grid-template-columns: 1fr 140px 1fr; gap: 15px; 
+            background: #fff; padding: 12px; border-radius: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); align-items: center; margin-bottom: 15px;
         }
         
         .upload-section { display: flex; flex-direction: column; gap: 8px; }
         .upload-zone { 
-            border: 2px dashed #dadce0; border-radius: 8px; height: 48px; 
+            border: 2px dashed #dadce0; border-radius: 10px; height: 52px; 
             display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; background: #fff; transition: 0.2s;
+            cursor: pointer; background: #fff; transition: all 0.2s ease;
         }
-        .upload-zone.drag-over { border-color: var(--primary); background: #f8faff; }
+        .upload-zone.drag-over { border-color: var(--primary); background: #f1f7fe; transform: translateY(-2px); }
+        .upload-zone span { font-size: 13px; color: #5f6368; }
         
-        /* Sheet 选择器样式 */
         .sheet-selector { 
-            display: none; padding: 4px; border: 1px solid #dadce0; 
-            border-radius: 4px; font-size: 12px; color: #5f6368; outline: none;
+            display: none; padding: 6px; border: 1px solid #dfe1e5; 
+            border-radius: 6px; font-size: 12px; color: var(--primary); 
+            font-weight: 600; outline: none; background: #fff; cursor: pointer;
         }
 
-        .btn-go { background: var(--primary); color: white; border: none; height: 40px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; flex: 1; background: #dadce0; border: 1px solid #dadce0; border-radius: 8px; overflow: hidden; }
-        .pane { background: #fff; overflow: auto; }
-        
-        /* Excel 表格样式 */
-        .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
-        .excel-table thead th { position: sticky; top: 0; background: #f8f9fa; z-index: 10; border-bottom: 1px solid #ccc; padding: 8px; font-size: 12px; }
-        .excel-table tbody th { position: sticky; left: 0; background: #f8f9fa; z-index: 9; width: 40px; text-align: center; border-right: 1px solid #ccc; }
-        .excel-table td { border: 1px solid #ebebeb; padding: 6px 8px; height: 28px; font-size: 13px; white-space: nowrap; overflow: hidden; }
-        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; border: 1px solid var(--diff-border) !important; }
+        .btn-go { 
+            background: var(--primary); color: white; border: none; height: 44px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;
+            box-shadow: 0 2px 4px rgba(26,115,232,0.3); transition: 0.2s;
+        }
+        .btn-go:hover { background: #1557b0; box-shadow: 0 4px 10px rgba(26,115,232,0.4); }
 
-        .text-mode { padding: 30px; line-height: 2.2; font-size: 14px; white-space: pre-wrap; }
+        .main-view { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; flex: 1; background: #dee2e6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .pane { background: #fff; overflow: auto; position: relative; }
+        
+        /* Excel 表格 */
+        .excel-table { border-collapse: collapse; table-layout: fixed; width: max-content; }
+        .excel-table thead th { position: sticky; top: 0; background: #f1f3f4; z-index: 10; border-bottom: 1px solid #ccc; padding: 10px; font-size: 12px; color: #5f6368; }
+        .excel-table tbody th { position: sticky; left: 0; background: #f1f3f4; z-index: 9; width: 45px; text-align: center; border-right: 1px solid #ccc; color: #9aa0a6; }
+        .excel-table td { border: 1px solid #ebebeb; padding: 8px; height: 32px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .diff-cell { background: var(--diff-red) !important; color: var(--diff-border) !important; font-weight: 600; border: 1px solid var(--diff-border) !important; }
+
+        /* 2. PDF 页码样式增强 */
+        .text-mode { padding: 40px; line-height: 2.4; font-size: 15px; white-space: pre-wrap; color: var(--text-main); }
+        .page-divider {
+            display: flex; align-items: center; margin: 30px 0 15px 0; color: var(--primary); font-weight: bold; font-size: 12px;
+        }
+        .page-divider::before, .page-divider::after { content: ""; flex: 1; height: 1px; background: #e8eaed; }
+        .page-badge { background: #e8f0fe; padding: 4px 12px; border-radius: 20px; border: 1px solid #c2e7ff; margin: 0 15px; }
+
+        .txt-added { background: #e6ffec; color: #137333; border-bottom: 1px solid #34a853; }
+        .txt-removed { background: #ffebe9; color: #d93025; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
-<div class="app-header"><h1>对照 (MatchDiff)</h1></div>
+<div class="app-header">
+    <h1>文档对比助手</h1>
+    <p>数据坐标比对与文本差异分析系统</p>
+</div>
 
 <div class="top-nav">
     <div class="upload-section">
@@ -62,7 +96,7 @@
         <select id="sheetA" class="sheet-selector"></select>
     </div>
     
-    <button class="btn-go" id="runBtn">执行核对</button>
+    <button class="btn-go" id="runBtn">开始核对</button>
     
     <div class="upload-section">
         <div class="upload-zone" id="zoneB">
@@ -93,7 +127,6 @@
         zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleParse(e.dataTransfer.files[0], key); };
         input.onchange = (e) => handleParse(e.target.files[0], key);
 
-        // 切换 Sheet 监听
         sel.onchange = (e) => {
             const obj = key === 'A' ? dataA : dataB;
             const ws = obj.wb.Sheets[e.target.value];
@@ -116,10 +149,9 @@
             if (ext.includes('xls')) {
                 const wb = XLSX.read(await file.arrayBuffer(), {type: 'array'});
                 obj.wb = wb;
-                // 填充 Sheet 下拉框
                 wb.SheetNames.forEach(name => {
                     const opt = document.createElement('option');
-                    opt.value = name; opt.innerText = name;
+                    opt.value = name; opt.innerText = "工作表: " + name;
                     sel.appendChild(opt);
                 });
                 sel.style.display = 'block';
@@ -130,7 +162,8 @@
                 for (let i=1; i<=pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
-                    t += `[P${i}]\n` + content.items.map(s => s.str).join(" ") + "\n";
+                    // 标记页码
+                    t += `[[PAGE_${i}]]\n` + content.items.map(s => s.str).join(" ") + "\n";
                 }
                 obj.val = t;
             } else if (ext === 'docx') {
@@ -139,7 +172,7 @@
             } else {
                 obj.val = await file.text();
             }
-            label.innerHTML = `<span class="file-ready">✅ ${file.name}</span>`;
+            label.innerHTML = `<span style="color:var(--primary);font-weight:bold">✅ ${file.name}</span>`;
         } catch (e) { label.innerText = "❌ 解析失败"; }
     }
 
@@ -149,11 +182,13 @@
     document.getElementById('runBtn').onclick = () => {
         const v1 = document.getElementById('p1'), v2 = document.getElementById('p2');
         if (!dataA.val || !dataB.val) return;
+        
         if (dataA.ext.includes('xls') && dataB.ext.includes('xls')) {
             renderExcel(v1, v2);
         } else {
             renderText(v1, v2);
         }
+        
         v1.onscroll = () => { v2.scrollTop = v1.scrollTop; v2.scrollLeft = v1.scrollLeft; };
         v2.onscroll = () => { v1.scrollTop = v2.scrollTop; v1.scrollLeft = v2.scrollLeft; };
     };
@@ -163,7 +198,7 @@
         const cols = Math.max(dataA.val[0]?.length || 0, dataB.val[0]?.length || 0);
         const build = (curr, other) => {
             let h = '<table class="excel-table"><thead><tr><th>#</th>';
-            for(let j=0; j<cols; j++) h += `<th style="width:140px">${String.fromCharCode(65+j)}</th>`;
+            for(let j=0; j<cols; j++) h += `<th style="width:150px">${String.fromCharCode(65+j)}</th>`;
             h += '</tr></thead><tbody>';
             for(let i=0; i<rows; i++) {
                 h += `<tr><th>${i+1}</th>`;
@@ -184,15 +219,21 @@
         const diffs = Diff.diffLines(String(dataA.val), String(dataB.val));
         v1.innerHTML = '<div class="text-mode"></div>'; v2.innerHTML = '<div class="text-mode"></div>';
         const d1 = v1.firstChild, d2 = v2.firstChild;
+
+        const formatPage = (text) => {
+            return text.replace(/\[\[PAGE_(\d+)\]\]/g, '<div class="page-divider"><span class="page-badge">第 $1 页</span></div>');
+        };
+
         diffs.forEach(p => {
+            const val = formatPage(p.value);
             if (p.added) {
-                d2.innerHTML += `<span style="background:#e6ffec;color:#137333">${p.value}</span>`;
+                d2.innerHTML += `<span class="txt-added">${val}</span>`;
                 d1.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else if (p.removed) {
-                d1.innerHTML += `<span style="background:#ffebe9;color:#d93025;text-decoration:line-through">${p.value}</span>`;
+                d1.innerHTML += `<span class="txt-removed">${val}</span>`;
                 d2.innerHTML += `<span style="color:transparent;user-select:none">${p.value}</span>`;
             } else {
-                d1.innerHTML += p.value; d2.innerHTML += p.value;
+                d1.innerHTML += val; d2.innerHTML += val;
             }
         });
     }
